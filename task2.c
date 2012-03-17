@@ -1,18 +1,22 @@
 
-#include <linux/module.h>       // Этот файл подключается в любом модуле по соглашению
-#include <linux/kernel.h>       // Содержит макросы для функции printk()
-#include <linux/init.h>         // Содержит определения макросов __init и __exit
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/init.h>
 #include <linux/sched.h>
 
-void printHW(void)              // Функция для вывода приветствия
+void printHW(void)
 {
 
-    printk("Hello, world %s, pid %d \n", current->comm, current->pid);
+    struct task_struct *task = $init_task;
+    
+//    list_for_each(list, current->children) {
+//        task = list_entry(list, struct task_struct, sibling);
+//        /* переменная task теперь указывает на один из процессов,
+//        порожденных текущим процессом */
+//    }
+
 
 }
-
-EXPORT_SYMBOL(printHW);         // Экспорт функций ядра - предоставляет доступ к функции 
-                                // другим модулям ядра
 
 static int __init start(void)   // Точка входа в модуль
 {
@@ -20,10 +24,6 @@ static int __init start(void)   // Точка входа в модуль
     return 0;                   // в случае успешной загрузки возвращать нулевое значение
 }
 
-static void __exit stop(void)   // Точка выхода
-{
-    //printk("Module unloaded\n");
-}
-module_init(start);             // When module loaded
-module_exit(stop);              // When rmmod 
-MODULE_LICENSE("GPL");          // Указывает на лицензию, под которой распространяется данный модуль
+module_init(start);
+//module_exit(stop);
+MODULE_LICENSE("GPL");
