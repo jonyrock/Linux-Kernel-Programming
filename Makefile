@@ -1,1 +1,1 @@
-obj-m += task2.o
+obj-m += task3.o
