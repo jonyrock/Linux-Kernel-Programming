@@ -6,15 +6,39 @@
 #include <linux/sched.h>
 #include <linux/list.h>
 
+MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("APTU.2012.PLK.503.AlexeyVelikiy.Task_3");
+
 void printHW(void)
 {
-    printk(KERN_CRIT "Hello,Debugg world 333 %s, pid %d \n", 
-        current->comm, 
-        current->pid);        
-            
+    
+    printk("Helloo moto\n");
+    
+    struct task_struct *task;
+    task = current;
+    
+    while(task->pid != 1){
+        
+        printk("%d\n", task->pid);
+        task = task->parent;        
+        
+    }
+    
+    printk("%d\n", task->pid);
+    
+    
+    
+//    for(task = current; task != init_task; task = task->parent) {
+//        
+//        
+//    
+//    }
+    
+    
+    
 }
 
-static int start(void)
+static int __init start(void)
 {
     printHW();
     return 0;
@@ -26,4 +50,3 @@ static void __exit stop(void)
 }
 module_init(start);
 module_exit(stop);
-MODULE_LICENSE("GPL");
