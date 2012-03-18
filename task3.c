@@ -7,9 +7,8 @@
 #include <linux/list.h>
 
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("APTU.2012.PLK.503.AlexeyVelikiy.Task_3");
+MODULE_DESCRIPTION("APTU.2012.PLK.503.AlexeyVelikiy.Task3");
 
-// find init process
 struct task_struct* findInitTask(void);
 
 void printProcessSubtree(struct task_struct* task, size_t padding)
@@ -32,11 +31,9 @@ void printProcessSubtree(struct task_struct* task, size_t padding)
     printk("%s[%d]\n", task->comm, task->pid);
     
     
-    list_for_each(list, *task->children) {
-//
-//      task1 = list_entry(list, struct task_struct, sibling);
-//      printProcessSubtree(task1, padding + 1);
-//
+    list_for_each(list, &task->children) {
+        taskInner = list_entry(list, struct task_struct, sibling);
+        printProcessSubtree(taskInner, padding + 1);
     }
     
 }
