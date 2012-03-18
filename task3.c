@@ -14,27 +14,30 @@ struct task_struct* findInitTask(void);
 
 void printProcessSubtree(struct task_struct* task, size_t padding)
 {
-    
-    struct task_struct* task1;
+
+    struct task_struct* taskInner;
     struct list_head *list;
+    size_t i;
     
     if(task == NULL) {
         printk("Null pointer");
         return;
     }
     
-    for(size_t i = 0; i < padding; i++){
+    
+    for(i = 0; i < padding; i++) {
         printk("    ");
     }
-            
+    
     printk("%s[%d]\n", task->comm, task->pid);
     
-//  list_for_each(list, &task->sibling) {
-//  
-//      task1 = list_entry(list, struct task_struct, sibling);        
+    
+    list_for_each(list, *task->children) {
+//
+//      task1 = list_entry(list, struct task_struct, sibling);
 //      printProcessSubtree(task1, padding + 1);
-//      
-//  }
+//
+    }
     
 }
 
@@ -67,3 +70,4 @@ struct task_struct* findInitTask(void) {
     }
     
     return task;
+}
