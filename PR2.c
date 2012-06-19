@@ -24,14 +24,37 @@ void printAll(void)
     }
 }
 
-void printAllGrouped(){
-    
+void printAllGrouped()
+{
+    int i = 0;
+    int tgids_count = 0;
+    bool tgid_founded = false;
+    struct task_struct* task;
+
+    for_each_process(task) {
+        tgid_founded = false;
+        for(i = 0; i < tgids_count; i++) {
+            if(tgids_buffer[i] == task->tgid) {
+                tgid_founded = true;
+            }
+        }
+        if(tgid_founded) continue;
+        tgids_buffer[tgids_count] = task->tgid;
+        tgids_count++;
+        if(MAX_ARRAY_LENGTH == tgids_count) break;
+    }
+
+    for(i = 0; i < tgids_count; i++) {
+        printk("TGID: %d\n---------------\n", tgids_buffer[i]);
+        
+    }
 }
 
 static int __init start(void)
 {
-    printCurrent();
-    printAll();
+    //printCurrent();
+    //printAll();
+    printAllGrouped();
     return 0;
 }
 
