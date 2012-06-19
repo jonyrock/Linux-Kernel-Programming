@@ -30,7 +30,8 @@ void printAllGrouped()
     int tgids_count = 0;
     bool tgid_founded = false;
     struct task_struct* task;
-
+    
+    printk("\nAll tasks grouped:\n");
     for_each_process(task) {
         tgid_founded = false;
         for(i = 0; i < tgids_count; i++) {
@@ -55,8 +56,8 @@ void printAllGrouped()
 
 static int __init start(void)
 {
-    //printCurrent();
-    //printAll();
+    printCurrent();
+    printAll();
     printAllGrouped();
     return 0;
 }
