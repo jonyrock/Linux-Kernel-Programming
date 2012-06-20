@@ -11,7 +11,7 @@ int pid;
 struct sk_buff *skb_out;
 int res;
 
-void sendMessage(char* msg, size_t msg_size, __u16 flags)
+void send_message(char* msg, size_t msg_size, __u16 flags)
 {
     skb_out = nlmsg_new(msg_size, 0);
     
@@ -30,21 +30,24 @@ void sendMessage(char* msg, size_t msg_size, __u16 flags)
         printk(KERN_INFO "Error while sending bak to user\n");
 }
 
+void tgid_list(void)
+{
+    struct task_struct* task;
+    for_each_process(task){
+        send_message(task->comm, strlen(task->comm), 0);
+    }
+    send_message(NULL, 0, NLMSG_DONE);
+}
+
 void recv_msg(struct sk_buff *skb)
 {
-    
     nlh=(struct nlmsghdr*)skb->data;
     pid = nlh->nlmsg_pid;    
     char value = *(char*)nlmsg_data(nlh);
     if(value == 1)
-        printk("Hello one!\n");
+        tgid_list();
     if(value == 2)
-        printk("Hello two!\n");
-
-    char* msg = "Oh it's cool";
-    sendMessage(msg, strlen(msg), 0);
-    sendMessage(msg, strlen(msg), NLMSG_DONE);
-    
+        printk("Hello two!\n");    
 }
 
 
