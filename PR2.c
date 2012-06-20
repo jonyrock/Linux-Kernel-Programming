@@ -9,57 +9,50 @@
 #include <linux/netlink.h>
 #include <linux/skbuff.h>
 
-#define NETLINK_TEST 17
-#define VFW_GROUP 0
-#define MSG_SIZE NLMSG_SPACE(1024)
+#define NETLINK_USER 30
 
-static struct sock *nl_sk = NULL;
+struct sock *nl_sk = NULL;
 
-static void nltest_rcv(struct sock *sk, int len)
+static void hello_nl_recv_msg(struct sk_buff *skb)
 {
-    struct sk_buff *nl_skb;
-    struct nlmsghdr *nl_hdr;
+    struct nlmsghdr *nlh;
     int pid;
     
-    while((nl_skb = skb_dequeue(&sk->sk_receive_queue)) != NULL) {
-        nl_hdr = (struct nlmsghdr *)nl_skb->data;
-        pid = nl_hdr->nlmsg_pid;
-        printk(KERN_ALERT "*** Message from user with PID: (pid = %d) is %s\n",
-               pid, (char*)NLMSG_DATA(nl_hdr));
-        nl_skb = alloc_skb(MSG_SIZE, in_interrupt() ?
-                           GFP_ATOMIC : GFP_KERNEL);
-        skb_put(nl_skb, MSG_SIZE);
-        nl_hdr = (struct nlmsghdr *)nl_skb->data;
-        nl_hdr->nlmsg_len = MSG_SIZE;
-        nl_hdr->nlmsg_pid = pid;
-        nl_hdr->nlmsg_flags = 0;
-        strcpy(NLMSG_DATA(nl_hdr), "HELLO HELLO HELLO");
-        NETLINK_CB(nl_skb).pid = 0;
-        NETLINK_CB(nl_skb).dst_group = VFW_GROUP;
-        netlink_unicast(nl_sk, nl_skb, pid, 0);
-        kfree_skb(nl_skb);
-    }
+    printk("Entering: %s\n", __FUNCTION__);
+    
+    nlh=(struct nlmsghdr*)skb->data;
+    printk("Netlink received msg payload: %s\n",
+           (char*)NLMSG_DATA(nlh));
+    pid = nlh->nlmsg_pid; /*pid of sending process */
+    NETLINK_CB(skb).dst_group = 0; /* not in mcast group */
+    NETLINK_CB(skb).pid = 0;      /* from kernel */
+    //NETLINK_CB(skb).groups = 0; /* not in mcast group */
+    //NETLINK_CB(skb).dst_pid = pid;
+    printk("About to send msg bak:\n");
+    //netlink_unicast(nl_sk,skb,pid,MSG_DONTWAIT);
 }
+
+
 
 static int __init start(void)
 {
-    struct net *net;
-    printk(KERN_ALERT "INIT/START: nltest\n");
-    nl_sk = netlink_kernel_create(net, NETLINK_TEST, VFW_GROUP, nltest_rcv, 0, THIS_MODULE);
-    
+    printk("Entering: %s\n",__FUNCTION__);
+    nl_sk = netlink_kernel_create(&init_net, NETLINK_USER, 0,
+                                hello_nl_recv_msg, NULL, THIS_MODULE);
+                                
     if(!nl_sk) {
-        printk(KERN_ALERT "ERROR: nltest - netlink_kernel_create() failed\n");
-        return -1;
+        printk(KERN_ALERT "Error creating socket.\n");
+        return -10;
     }
     
     return 0;
 }
 
 static void __exit stop(void)
-{       
-    printk(KERN_ALERT "EXIT: nltest\n");
-    sock_release(nl_sk->sk_socket);
-    //printk("\n    --end--    \n");
+{
+    printk("\n    --end--    \n");
+    if(nl_sk != NULL)
+        netlink_kernel_release(nl_sk);  
 }
 module_init(start);
 module_exit(stop);
