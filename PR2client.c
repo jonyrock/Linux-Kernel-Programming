@@ -52,7 +52,7 @@ void TGIDList()
     sendMessage(1);
     do{
         recvmsg(sock_fd, &msg, 0);
-        printf("count: %s\n", (char*)NLMSG_DATA(nlh));
+        printf("count: %d\n", (int*)NLMSG_DATA(nlh));
     } while(nlh->nlmsg_type != NLMSG_DONE);
 }
 

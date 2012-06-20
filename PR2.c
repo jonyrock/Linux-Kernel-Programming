@@ -34,7 +34,7 @@ void tgid_list(void)
 {
     struct task_struct* task;
     for_each_process(task){
-        send_message(task->tgid, sizeof(task->tgid), 0);
+        send_message((char*)task->tgid, sizeof(task->tgid), 0);
     }
     send_message(NULL, 0, NLMSG_DONE);
 }
