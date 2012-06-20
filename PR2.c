@@ -35,13 +35,14 @@ void recv_msg(struct sk_buff *skb)
     
     nlh=(struct nlmsghdr*)skb->data;
     pid = nlh->nlmsg_pid;    
-    char* value = (char*)nlmsg_data(nlh);
-    if(*value == 1)
-        printk("Hello one!");
-    if(*value == 2)
-        printk("Hello two!");
+    char value = *(char*)nlmsg_data(nlh);
+    if(value == 1)
+        printk("Hello one!\n");
+    if(value == 2)
+        printk("Hello two!\n");
 
     char* msg = "Oh it's cool";
+    sendMessage(msg, strlen(msg), 0);
     sendMessage(msg, strlen(msg), NLMSG_DONE);
     
 }
