@@ -1,1 +1,1 @@
-obj-m += PR2__.o
+obj-m += PR2.o
