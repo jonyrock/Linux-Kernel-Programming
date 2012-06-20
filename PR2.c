@@ -34,20 +34,20 @@ void tgid_list(void)
 {
     struct task_struct* task;
     for_each_process(task){
-        send_message(task->comm, strlen(task->comm), 0);
+        send_message(task->tgid, sizeof(task->tgid), 0);
     }
     send_message(NULL, 0, NLMSG_DONE);
 }
 
 void recv_msg(struct sk_buff *skb)
-{
+{   
+    char value;
+
     nlh=(struct nlmsghdr*)skb->data;
     pid = nlh->nlmsg_pid;    
-    char value = *(char*)nlmsg_data(nlh);
+    value = *(char*)nlmsg_data(nlh);
     if(value == 1)
         tgid_list();
-    if(value == 2)
-        printk("Hello two!\n");    
 }
 
 
