@@ -30,11 +30,34 @@ void send_message(char* msg, size_t msg_size, __u16 flags)
         printk(KERN_INFO "Error while sending bak to user\n");
 }
 
+void send_message_int(int t, __u16 flags)
+{
+    int* ptr;
+    skb_out = nlmsg_new(sizeof(int), 0);
+    //printk("%d\n", t);
+
+    if(!skb_out) {
+        printk(KERN_ERR "Failed to allocate new skb\n");
+        return;
+    }
+    
+    nlh = nlmsg_put(skb_out, 0, 0, flags, sizeof(int), 0);
+    NETLINK_CB(skb_out).dst_group = 0;
+    ptr = (int*)nlmsg_data(nlh);
+    *ptr = t;
+    
+    res = nlmsg_unicast(nl_sk, skb_out, pid);
+    
+    if(res < 0)
+        printk(KERN_INFO "Error while sending bak to user\n");
+}
+
 void tgid_list(void)
 {
     struct task_struct* task;
     for_each_process(task){
-        send_message((char*)task->tgid, sizeof(task->tgid), 0);
+        send_message_int((int)task->tgid, 0);
+        send_message_int((int)task->pid, 0);
     }
     send_message(NULL, 0, NLMSG_DONE);
 }
