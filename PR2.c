@@ -52,6 +52,12 @@ void send_message_int(int t, __u16 flags)
         printk(KERN_INFO "Error while sending bak to user\n");
 }
 
+void send_error(void)
+{
+    char* msg = "Error occured";
+    send_message(msg, strlen(msg), NLMSG_ERROR);
+}
+
 void tgid_list(void)
 {
     struct task_struct* task;
@@ -59,6 +65,7 @@ void tgid_list(void)
         send_message_int((int)task->tgid, 0);
     }
 }
+
 void pids_by_tgid(int tgid)
 {
     struct task_struct* task;
@@ -72,12 +79,17 @@ void pids_by_tgid(int tgid)
 void comm_by_pid(int pid)
 {
     struct task_struct* task;
+    bool found = false;
+
     for_each_process(task) {
-        if((int)task->pid == pid){
+        if((int)task->pid == pid) {
             send_message(task->comm, strlen(task->comm), 0);
+            found = true;
             break;
         }
     }
+    if(found) return;
+    send_error();
 }
 
 void recv_msg(struct sk_buff *skb)
@@ -88,25 +100,31 @@ void recv_msg(struct sk_buff *skb)
     pid = nlh->nlmsg_pid;    
     value = *(int*)nlmsg_data(nlh);
     printk("Get:%hd value:%d\n", nlh->nlmsg_flags, value);
-    if(nlh->nlmsg_flags == 1)
-        tgid_list();
-    if(nlh->nlmsg_flags == 2)
-        pids_by_tgid(value);
-    if(nlh->nlmsg_flags == 3)
-        comm_by_pid(value);
+    switch(nlh->nlmsg_flags) {
+        case 1: 
+            tgid_list();
+            break;
+        case 2:
+            pids_by_tgid(value);
+            break;
+        case 3:
+            comm_by_pid(value);
+            break;
+        default:
+            send_error();
+    }
     send_message(NULL, 0, NLMSG_DONE);
 }
 
 
 int __init start(void)
 {
-
     printk("Service started\n");
     nl_sk=netlink_kernel_create(&init_net, NETLINK_USER, 0, recv_msg,
                                 NULL, THIS_MODULE);
                                 
     if(!nl_sk) {
-        printk(KERN_ALERT "Error creating socket.\n");
+        printk("Error creating socket.\n");
         return -10;
     }
     
