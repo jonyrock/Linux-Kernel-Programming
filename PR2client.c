@@ -75,7 +75,8 @@ void pids_by_tgid(int tgid)
 void comm_by_pid(int pid)
 {
     send_message(3, pid);
-    list_response();
+    recvmsg(sock_fd, &msg, 0);
+    printf("%s\n", (char*)NLMSG_DATA(nlh));
 }
 
 int main(char* args[])
