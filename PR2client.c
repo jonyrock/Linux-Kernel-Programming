@@ -62,16 +62,19 @@ void list_response()
 
 void tgid_list()
 {
-    printf("Send 1\n");
     send_message(1, 0);
     list_response();
 }
 
 void pids_by_tgid(int tgid)
 {
-    printf("Send 2\n");
     send_message(2, tgid);
-    
+    list_response();
+}
+
+void comm_by_pid(int pid)
+{
+    send_message(3, pid);
     list_response();
 }
 
@@ -85,7 +88,8 @@ int main(char* args[])
     init();
 
     //tgid_list();
-    pids_by_tgid(299);
+    //pids_by_tgid(299);
+    comm_by_pid(299);
     
     close(sock_fd);
     free(nlh);

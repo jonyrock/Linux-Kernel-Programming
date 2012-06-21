@@ -69,6 +69,17 @@ void pids_by_tgid(int tgid)
     
 }
 
+void comm_by_pid(int pid)
+{
+    struct task_struct* task;
+    for_each_process(task) {
+        if((int)task->pid == pid){
+            send_message(task->comm, strlen(task->comm), 0);
+            break;
+        }
+    }
+}
+
 void recv_msg(struct sk_buff *skb)
 {   
     int value;
@@ -81,6 +92,8 @@ void recv_msg(struct sk_buff *skb)
         tgid_list();
     if(nlh->nlmsg_flags == 2)
         pids_by_tgid(value);
+    if(nlh->nlmsg_flags == 3)
+        comm_by_pid(value);
     send_message(NULL, 0, NLMSG_DONE);
 }
 
