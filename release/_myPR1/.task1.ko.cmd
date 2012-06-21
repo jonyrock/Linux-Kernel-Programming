@@ -1,0 +1,1 @@
+cmd_/home/alex/Desktop/linux-3.3-rc2/_mymodules/task1.ko := ld -r -m elf_i386 -T /home/alex/Desktop/linux-3.3-rc2/scripts/module-common.lds --build-id  -o /home/alex/Desktop/linux-3.3-rc2/_mymodules/task1.ko /home/alex/Desktop/linux-3.3-rc2/_mymodules/task1.o /home/alex/Desktop/linux-3.3-rc2/_mymodules/task1.mod.o

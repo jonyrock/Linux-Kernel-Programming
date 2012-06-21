@@ -1,0 +1,130 @@
+From 5e888ca7bb73c08bc37f0c329db2a8fb6a6e3bd1 Mon Sep 17 00:00:00 2001
+From: Alexey Velikiy <gmpota@gmail.com>
+Date: Tue, 19 Jun 2012 17:00:18 +0400
+Subject: [PATCH] Task PR1 DONE
+
+---
+ _myPR1/PR1.c       |   72 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ _myPR1/build.sh    |   10 +++++++
+ _myPR1/buildPR1.sh |    2 +
+ _myPR1/output.sh   |    1 +
+ 4 files changed, 85 insertions(+), 0 deletions(-)
+ create mode 100644 _myPR1/PR1.c
+ create mode 100755 _myPR1/build.sh
+ create mode 100755 _myPR1/buildPR1.sh
+ create mode 100755 _myPR1/output.sh
+
+diff --git a/_myPR1/PR1.c b/_myPR1/PR1.c
+new file mode 100644
+index 0000000..2bf7119
+--- /dev/null
++++ b/_myPR1/PR1.c
+@@ -0,0 +1,72 @@
++/******************************************************************************/
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/sched.h>
++#define MAX_ARRAY_LENGTH 10000
++
++int tgids_buffer[MAX_ARRAY_LENGTH];
++
++void printCurrent(void)
++{
++    printk("Current task info:\n");
++    printk("Name: %s\nPID: %d\nTGID: %d\n",
++           current->comm, current->pid, current->tgid);
++}
++
++void printAll(void)
++{
++    struct task_struct* task;
++    printk("\nAll tasks info:\n");
++    printk("PID\tTGID\tCOMM\n");
++    for_each_process(task) {
++        printk("%d\t%d\t%s\n", task->pid, task->tgid, task->comm);
++    }
++}
++
++void printAllGrouped()
++{
++    int i = 0;
++    int tgids_count = 0;
++    bool tgid_founded = false;
++    struct task_struct* task;
++    
++    printk("\nAll tasks grouped:\n");
++    for_each_process(task) {
++        tgid_founded = false;
++        for(i = 0; i < tgids_count; i++) {
++            if(tgids_buffer[i] == task->tgid) {
++                tgid_founded = true;
++            }
++        }
++        if(tgid_founded) continue;
++        tgids_buffer[tgids_count] = task->tgid;
++        tgids_count++;
++        if(MAX_ARRAY_LENGTH == tgids_count) break;
++    }
++
++    for(i = 0; i < tgids_count; i++) {
++        printk("TGID: %d\n", tgids_buffer[i]);
++        for_each_process(task) {
++            if(task->tgid != tgids_buffer[i]) continue;
++            printk("\t%d\n", task->pid);
++        }
++    }
++}
++
++static int __init start(void)
++{
++    printCurrent();
++    printAll();
++    printAllGrouped();
++    return 0;
++}
++
++static void __exit stop(void)
++{
++    printk("\n    --end--    \n");
++}
++module_init(start);
++module_exit(stop);
++
++/******************************************************************************/
+\ No newline at end of file
+diff --git a/_myPR1/build.sh b/_myPR1/build.sh
+new file mode 100755
+index 0000000..3ee1238
+--- /dev/null
++++ b/_myPR1/build.sh
+@@ -0,0 +1,10 @@
++#!/bin/bash
++echo "Building $0/$1"
++rm $1.o
++rm $1.ko
++echo "obj-m += $1.o" > Makefile
++make -C .. SUBDIRS=$PWD modules 
++rmmod $1.
++echo "------- $1 `date` -------" >> /var/log/syslog
++insmod $1.ko
++rmmod $1.
+diff --git a/_myPR1/buildPR1.sh b/_myPR1/buildPR1.sh
+new file mode 100755
+index 0000000..4fa1811f
+--- /dev/null
++++ b/_myPR1/buildPR1.sh
+@@ -0,0 +1,2 @@
++#!/bin/bash
++./build.sh PR1
+diff --git a/_myPR1/output.sh b/_myPR1/output.sh
+new file mode 100755
+index 0000000..055fa6c
+--- /dev/null
++++ b/_myPR1/output.sh
+@@ -0,0 +1 @@
++tail -q -f /var/log/syslog | sed "s/.*\[.*\] //"
+\ No newline at end of file
+-- 
+1.7.4.1
+

@@ -1,0 +1,1 @@
+tail -q -f /var/log/syslog | sed "s/.*\[.*\] //"
