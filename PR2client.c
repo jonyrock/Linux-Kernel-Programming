@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <linux/netlink.h>
 
@@ -32,7 +35,7 @@ void send_message(short int flags, int msg_value)
     memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
     nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
     nlh->nlmsg_pid = getpid();
-    nlh->nlmsg_flags = 1;
+    nlh->nlmsg_flags = flags;
     
     int* dataPtr = (int*)NLMSG_DATA(nlh);
     *dataPtr = msg_value;
@@ -42,32 +45,37 @@ void send_message(short int flags, int msg_value)
     msg.msg_name = (void *)&dest_addr;
     msg.msg_namelen = sizeof(dest_addr);
     msg.msg_iov = &iov;
-    msg.msg_iovlen = flags;
+    msg.msg_iovlen = 1;
     sendmsg(sock_fd, &msg, 0);
 }
 
 void list_response()
 {
-    while(nlh->nlmsg_type != NLMSG_DONE){
+    while(1){
         recvmsg(sock_fd, &msg, 0);
+        if(nlh->nlmsg_type == NLMSG_DONE) break;
         int i = *(int*)NLMSG_DATA(nlh);
         printf("%d\n", i);
+        memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
     }
 }
 
 void tgid_list()
 {
+    printf("Send 1\n");
     send_message(1, 0);
     list_response();
 }
 
 void pids_by_tgid(int tgid)
 {
+    printf("Send 2\n");
     send_message(2, tgid);
+    
     list_response();
 }
 
-void main(char* args[])
+int main(char* args[])
 {
     sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);
     if(sock_fd < 0) {
@@ -76,8 +84,8 @@ void main(char* args[])
     }
     init();
 
-    tgid_list();
-    //pids_by_tgid(1);
+    //tgid_list();
+    pids_by_tgid(299);
     
     close(sock_fd);
     free(nlh);

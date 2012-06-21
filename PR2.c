@@ -58,29 +58,30 @@ void tgid_list(void)
     for_each_process(task) {
         send_message_int((int)task->tgid, 0);
     }
-    send_message(NULL, 0, NLMSG_DONE);
 }
 void pids_by_tgid(int tgid)
 {
     struct task_struct* task;
     for_each_process(task) {
-        if(task->tgid == tgid)
+        if((int)task->tgid == tgid)
             send_message_int((int)task->pid, 0);
     }
+    
 }
 
 void recv_msg(struct sk_buff *skb)
 {   
-    char value;
+    int value;
 
     nlh=(struct nlmsghdr*)skb->data;
     pid = nlh->nlmsg_pid;    
     value = *(int*)nlmsg_data(nlh);
-    printk("Get: %hd\n", nlh->nlmsg_flags);
+    printk("Get:%hd value:%d\n", nlh->nlmsg_flags, value);
     if(nlh->nlmsg_flags == 1)
         tgid_list();
     if(nlh->nlmsg_flags == 2)
         pids_by_tgid(value);
+    send_message(NULL, 0, NLMSG_DONE);
 }
 
 
