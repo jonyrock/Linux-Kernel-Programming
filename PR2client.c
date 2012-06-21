@@ -51,7 +51,7 @@ void send_message(short int flags, int msg_value)
 
 void list_response()
 {
-    while(1){
+    while(1) {
         recvmsg(sock_fd, &msg, 0);
         if(nlh->nlmsg_type == NLMSG_DONE) break;
         int i = *(int*)NLMSG_DATA(nlh);
@@ -79,7 +79,7 @@ void comm_by_pid(int pid)
     printf("%s\n", (char*)NLMSG_DATA(nlh));
 }
 
-int main(char* args[])
+int main(int argc, char **argv)
 {
     sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);
     if(sock_fd < 0) {
@@ -87,11 +87,20 @@ int main(char* args[])
         return -1;
     }
     init();
+    if(argc == 1) {
+        tgid_list();
+        goto stop;
+    }
+    if(argc == 2) {
+        comm_by_pid(atoi(argv[1]));
+        goto stop;
+    }
+    if(argc == 3) {
+        pids_by_tgid(atoi(argv[2]));
+        goto stop;
+    }
 
-    //tgid_list();
-    //pids_by_tgid(299);
-    comm_by_pid(299);
-    
+stop:
     close(sock_fd);
     free(nlh);
 }
