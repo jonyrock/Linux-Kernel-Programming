@@ -1,0 +1,53 @@
+From 832a6739e10fcdfcedb5d67eaf345595487a14da Mon Sep 17 00:00:00 2001
+From: Alexey Velikiy <gmpota@gmail.com>
+Date: Thu, 21 Jun 2012 20:48:34 +0400
+Subject: [PATCH] Task PR3 DONE
+
+---
+ _myPR3/PR3client.c |   33 +++++++++++++++++++++++++++++++++
+ 1 files changed, 33 insertions(+), 0 deletions(-)
+ create mode 100644 _myPR3/PR3client.c
+
+diff --git a/_myPR3/PR3client.c b/_myPR3/PR3client.c
+new file mode 100644
+index 0000000..bf186ed
+--- /dev/null
++++ b/_myPR3/PR3client.c
+@@ -0,0 +1,33 @@
++#include <stdio.h>
++#include <string.h>
++#include <errno.h>
++#include <unistd.h>
++
++// --------------------------------------------------------------------------------
++
++typedef struct {
++  pid_t pid;
++  char name[16];
++} process_t;
++
++#define __NR_get_pslist  349
++
++#define SYS_get_pslist __NR_get_pslist     
++
++// --------------------------------------------------------------------------------
++
++static process_t processes[600];
++
++int main() {
++  if (syscall(SYS_get_pslist, &processes, sizeof(processes)) < 0) {
++    printf("Failed to get the process list: %s\n", strerror(errno));
++    return 1;
++  }
++
++  process_t* p = processes;
++  while (p->pid) {
++    printf("Task: %.16s, pid: %d\n", p->name, p->pid);
++
++    ++p;
++  }
++}
+\ No newline at end of file
+-- 
+1.7.4.1
+
