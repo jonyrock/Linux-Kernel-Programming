@@ -67,8 +67,8 @@ void recv_msg(struct sk_buff *skb)
 
     nlh=(struct nlmsghdr*)skb->data;
     pid = nlh->nlmsg_pid;    
-    value = *(char*)nlmsg_data(nlh);
-    if(value == 1)
+    value = *(int*)nlmsg_data(nlh);
+    if(nlh->nlmsg_flags == 1)
         tgid_list();
 }
 

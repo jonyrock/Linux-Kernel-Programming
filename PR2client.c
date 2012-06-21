@@ -27,29 +27,28 @@ void init()
     
 }
 
-void send_message(char messageChar)
+void send_message(short int flags, int msg_value)
 {
     memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
     nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
     nlh->nlmsg_pid = getpid();
     nlh->nlmsg_flags = 1;
     
-    char* dataPtr = (char*)NLMSG_DATA(nlh);
-    *dataPtr = messageChar;
+    int* dataPtr = (int*)NLMSG_DATA(nlh);
+    *dataPtr = msg_value;
     
     iov.iov_base = (void *)nlh;
     iov.iov_len = nlh->nlmsg_len;
     msg.msg_name = (void *)&dest_addr;
     msg.msg_namelen = sizeof(dest_addr);
     msg.msg_iov = &iov;
-    msg.msg_iovlen = 1;
-    
-    sendmsg(sock_fd,&msg,0);
+    msg.msg_iovlen = flags;
+    sendmsg(sock_fd, &msg, 0);
 }
 
 void tgid_list()
 {
-    send_message(1);
+    send_message(1, 1);
     do{
         recvmsg(sock_fd, &msg, 0);
         int i = *(int*)NLMSG_DATA(nlh);
@@ -57,9 +56,9 @@ void tgid_list()
     } while(nlh->nlmsg_type != NLMSG_DONE);
 }
 
-void pids_by_tgid()
+void pids_by_tgid(int pid)
 {
-    sendMessage(2);
+    send_message(2, pid);
     do{
         recvmsg(sock_fd, &msg, 0);
         int i = *(int*)NLMSG_DATA(nlh);
@@ -76,7 +75,8 @@ void main(char* args[])
     }
     init();
 
-    tgid_list();
+    //tgid_list();
+    pids_by_tgid(1);
     
     close(sock_fd);
     free(nlh);
