@@ -27,7 +27,7 @@ void init()
     
 }
 
-void sendMessage(char messageChar)
+void send_message(char messageChar)
 {
     memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
     nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
@@ -47,9 +47,19 @@ void sendMessage(char messageChar)
     sendmsg(sock_fd,&msg,0);
 }
 
-void TGIDList()
+void tgid_list()
 {
-    sendMessage(1);
+    send_message(1);
+    do{
+        recvmsg(sock_fd, &msg, 0);
+        int i = *(int*)NLMSG_DATA(nlh);
+        printf("%d\n", i);
+    } while(nlh->nlmsg_type != NLMSG_DONE);
+}
+
+void pids_by_tgid()
+{
+    sendMessage(2);
     do{
         recvmsg(sock_fd, &msg, 0);
         int i = *(int*)NLMSG_DATA(nlh);
@@ -66,7 +76,7 @@ void main(char* args[])
     }
     init();
 
-    TGIDList();
+    tgid_list();
     
     close(sock_fd);
     free(nlh);

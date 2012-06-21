@@ -57,7 +57,6 @@ void tgid_list(void)
     struct task_struct* task;
     for_each_process(task){
         send_message_int((int)task->tgid, 0);
-        send_message_int((int)task->pid, 0);
     }
     send_message(NULL, 0, NLMSG_DONE);
 }
