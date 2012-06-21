@@ -46,37 +46,38 @@ void send_message(short int flags, int msg_value)
     sendmsg(sock_fd, &msg, 0);
 }
 
-void tgid_list()
+void list_response()
 {
-    send_message(1, 1);
-    do{
+    while(nlh->nlmsg_type != NLMSG_DONE){
         recvmsg(sock_fd, &msg, 0);
         int i = *(int*)NLMSG_DATA(nlh);
         printf("%d\n", i);
-    } while(nlh->nlmsg_type != NLMSG_DONE);
+    }
 }
 
-void pids_by_tgid(int pid)
+void tgid_list()
 {
-    send_message(2, pid);
-    do{
-        recvmsg(sock_fd, &msg, 0);
-        int i = *(int*)NLMSG_DATA(nlh);
-        printf("%d\n", i);
-    } while(nlh->nlmsg_type != NLMSG_DONE);
+    send_message(1, 0);
+    list_response();
+}
+
+void pids_by_tgid(int tgid)
+{
+    send_message(2, tgid);
+    list_response();
 }
 
 void main(char* args[])
 {
-    sock_fd=socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);
-    if(sock_fd<0) {
+    sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);
+    if(sock_fd < 0) {
         printf("Can't open socket!\n");
         return -1;
     }
     init();
 
-    //tgid_list();
-    pids_by_tgid(1);
+    tgid_list();
+    //pids_by_tgid(1);
     
     close(sock_fd);
     free(nlh);
