@@ -1,5 +1,10 @@
 
 *** BUGS ***
+-- Add names aas attrs. ATTR_RO mode
+-- Add links
+-- Remove links
+-- Update kernel/ksysfs.c. And after ksysfs_init exec my function
+-- Move from module to /kernel/sysfs_pslist.c
 
 *** DONE ***
 
