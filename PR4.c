@@ -13,20 +13,8 @@
 #include <linux/module.h>
 #include <linux/init.h>
 
-/*
- * This module shows how to create a simple subdirectory in sysfs called
- * /sys/kernel/kobject-example  In that directory, 3 files are created:
- * "foo", "baz", and "bar".  If an integer is written to these files, it can be
- * later read out of it.
- */
-
 static int foo;
-static int baz;
-static int bar;
 
-/*
- * The "foo" file where a static variable is read from and written to.
- */
 static ssize_t foo_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf)
 {
@@ -42,41 +30,6 @@ static ssize_t foo_store(struct kobject *kobj, struct kobj_attribute *attr,
 
 static struct kobj_attribute foo_attribute =
 	__ATTR(foo, 0666, foo_show, foo_store);
-
-/*
- * More complex function where we determine which variable is being accessed by
- * looking at the attribute for the "baz" and "bar" files.
- */
-static ssize_t b_show(struct kobject *kobj, struct kobj_attribute *attr,
-		      char *buf)
-{
-	int var;
-
-	if (strcmp(attr->attr.name, "baz") == 0)
-		var = baz;
-	else
-		var = bar;
-	return sprintf(buf, "%d\n", var);
-}
-
-static ssize_t b_store(struct kobject *kobj, struct kobj_attribute *attr,
-		       const char *buf, size_t count)
-{
-	int var;
-
-	sscanf(buf, "%du", &var);
-	if (strcmp(attr->attr.name, "baz") == 0)
-		baz = var;
-	else
-		bar = var;
-	return count;
-}
-
-static struct kobj_attribute baz_attribute =
-	__ATTR(baz, 0666, b_show, b_store);
-static struct kobj_attribute bar_attribute =
-	__ATTR(bar, 0666, b_show, b_store);
-
 
 /*
  * Create a group of attributes so that we can create and destroy them all
