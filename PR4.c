@@ -33,11 +33,11 @@ void pslist_task_init(struct task_struct* task) {
 
 static int __init start(void)
 {
-    int retval;
+    int retval = 0;
     struct task_struct* task;
     int q = 0;
     
-    root_kobj = kobject_create_and_add("pslist5", kernel_kobj);
+    root_kobj = kobject_create_and_add("pslist", kernel_kobj);
     if (!root_kobj) return -ENOMEM;
     
 //    retval = sysfs_create_group(root_kobj, &attr_group);
