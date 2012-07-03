@@ -68,5 +68,7 @@ static void __exit stop(void)
 }
 module_init(start);
 module_exit(stop);
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Alexey Velikiy <gmpota@gmail.com>");
 
 /******************************************************************************/
