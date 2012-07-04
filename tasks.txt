@@ -10,10 +10,11 @@
 
 *** IGNORED ***
 
-** Modified files ***
+*** Modified files ***
 /include/linux/sched.h
 /include/sysfs_pslist.h
 /kernel/exit.c
 /kernel/fork.c
 /kernel/sysfs_pslist.c
 /kernel/Makefile
+/kernel/ksysfs.c
