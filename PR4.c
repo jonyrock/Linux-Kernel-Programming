@@ -65,13 +65,14 @@ void pslist_task_init(struct task_struct *child)
 
 void pslist_task_link(struct task_struct *parent, struct task_struct *child) 
 {
+    int res = 0;
     if(!sysfs_exist) {
         task_link_log[task_link_log_count] = child;
         task_link_log[task_link_log_count + 1] = child;
         task_link_log_count += 2;
         if(task_link_log_count >= MAX_LOG_VALUE * 2) task_link_log_count = 0;
     } else {
-       sysfs_create_link(&parent->pslist_link, 
+       res = sysfs_create_link(&parent->pslist_link, 
                          &child->pslist_link, 
                          kobject_name(&child->pslist_link));
     }
@@ -83,21 +84,22 @@ void pslist_task_release(struct task_struct *child)
         task_release_log[task_release_log_count++] = child;
         if(task_release_log_count >= MAX_LOG_VALUE) task_release_log_count = 0;
     } else {
-        kobject_del(&tsk->pslist_link);
-        kobject_put(&tsk->pslist_link);
+        kobject_del(&child->pslist_link);
+        kobject_put(&child->pslist_link);
     }
 }
 
-static void pslist_init_logs(void) { 
+static void pslist_init_logs(void) 
+{ 
     int rel_i = 0;
     int j = 0;
-    for(rel_i = 0; rel_i < task_release_log_count) {
+    for(rel_i = 0; rel_i < task_release_log_count; rel_i++) {
         for(j = 0; j < task_init_log_count; j++) {
             if(task_init_log[j] == task_release_log[rel_i])
                 task_init_log[j] = NULL;
         }
         for(j = 0; j < task_link_log_count; j+= 2) {
-            if( task_link_log[j] == task_release_log[rel_i] || 
+            if( task_link_log[j]     == task_release_log[rel_i] || 
                 task_link_log[j + 1] == task_release_log[rel_i] ) {
                     task_link_log[j] = task_link_log[j + 1] = NULL;
             }
