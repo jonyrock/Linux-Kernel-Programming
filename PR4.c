@@ -10,11 +10,9 @@
 static ssize_t name_show(struct kobject *kobj, 
                                 struct kobj_attribute *attr, 
                                 char *buf) {
-    strncpy(buf,
+    return strncpy(buf,
         container_of(kobj, struct task_struct, pslist_link)->comm, 
-        TASK_COMM_LEN);
-
-    return 0;
+        TASK_COMM_LEN) - buf;
 }
 
 static struct kobj_attribute process_name_attr = __ATTR_RO(name);
@@ -80,17 +78,17 @@ void pslist_task_link(struct task_struct *parent, struct task_struct *child)
 
 void pslist_task_release(struct task_struct *child) 
 {
-    struct task_struct* taskp;
+    
     if(!sysfs_exist) {
         task_release_log[task_release_log_count++] = child;
         if(task_release_log_count >= MAX_LOG_VALUE) task_release_log_count = 0;
     } else {
         kobject_del(&child->pslist_link);
         kobject_put(&child->pslist_link);
-        for_each_process(taskp) {
-            sysfs_remove_link(&taskp->pslist_link, 
+
+        sysfs_remove_link(&child->real_parent->pslist_link, 
                 kobject_name(&child->pslist_link));
-        }
+        
     }
 }
 
