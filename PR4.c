@@ -80,12 +80,17 @@ void pslist_task_link(struct task_struct *parent, struct task_struct *child)
 
 void pslist_task_release(struct task_struct *child) 
 {
+    struct task_struct* taskp;
     if(!sysfs_exist) {
         task_release_log[task_release_log_count++] = child;
         if(task_release_log_count >= MAX_LOG_VALUE) task_release_log_count = 0;
     } else {
         kobject_del(&child->pslist_link);
         kobject_put(&child->pslist_link);
+        for_each_process(taskp) {
+            sysfs_remove_link(&taskp->pslist_link, 
+                kobject_name(&child->pslist_link));
+        }
     }
 }
 
