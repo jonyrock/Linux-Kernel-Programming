@@ -11,10 +11,10 @@
 *** IGNORED ***
 
 *** Modified files ***
+/include/linux/sysfs_pslist.h
 /include/linux/sched.h
-+/include/linux/sysfs_pslist.h
+/kernel/ksysfs.c
 /kernel/exit.c
 /kernel/fork.c
-+/kernel/sysfs_pslist.c
 /kernel/Makefile
-/kernel/ksysfs.c
+/kernel/sysfs_pslist.c
