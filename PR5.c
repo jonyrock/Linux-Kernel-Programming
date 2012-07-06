@@ -28,6 +28,7 @@ struct inode *ramfs_get_inode(struct super_block *sb,
 				const struct inode *dir, umode_t mode, dev_t dev)
 {
     struct inode * inode = new_inode(sb);
+    init_special_inode(inode, mode, dev);
     return inode;
 }
 
@@ -57,6 +58,7 @@ int ramfs_fill_super(struct super_block *sb, void *data, int silent)
             err = -ENOMEM;
             goto fail;
 	}
+
 
         root = d_alloc_root(inode);
 	sb->s_root = root;
