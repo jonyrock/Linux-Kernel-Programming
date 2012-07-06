@@ -38,21 +38,20 @@ my_inode_lookup(struct inode *parent_inode, struct dentry *dentry,
 
 int my_f_readdir( struct file *file, void *dirent, filldir_t filldir ) {
     //int err;
-    //struct dentry *de = file->f_dentry;
+    struct dentry *de = file->f_dentry;
     
     printk( "myfs: file_operations.readdir called\n" );
 
-    return 0;
-
-//    printk( "rkfs: file_operations.readdir called\n" );
-//    if(file->f_pos > 0)
-//        return 1;
-//    if(filldir(dirent, ".", 1, file->f_pos++, de->d_inode->i_ino, DT_DIR)||
-//       (filldir(dirent, "..", 2, file->f_pos++, de->d_parent->d_inode->i_ino, DT_DIR)))
-//        return 0;
-//    if(filldir(dirent, "hello.txt", 9, file->f_pos++, FILE_INODE_NUMBER, DT_REG ))
-//        return 0;
-//    return 1;
+    
+    if(file->f_pos > 0)
+        return 1;
+    if(filldir(dirent, ".", 1, file->f_pos++, de->d_inode->i_ino, DT_DIR) ||
+       (filldir(dirent, "..", 2, file->f_pos++, de->d_parent->d_inode->i_ino, 
+            DT_DIR)))
+        return 0;
+    if(filldir(dirent, "hello.txt", 9, file->f_pos++, FILE_INODE_NUMBER, DT_REG ))
+        return 0;
+    return 1;
 }
 
 struct inode *my_get_inode(struct super_block *sb,
