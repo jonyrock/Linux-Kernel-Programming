@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Building $0/$1"
+sudo umount /mnt/myfs/
 rmmod $1
 if [ -f $1.o ] 
 then 

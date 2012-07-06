@@ -36,8 +36,8 @@ my_inode_lookup(struct inode *parent_inode, struct dentry *dentry,
 
 
 int my_f_readdir( struct file *file, void *dirent, filldir_t filldir ) {
-    int err;
-    struct dentry *de = file->f_dentry;
+    //int err;
+    //struct dentry *de = file->f_dentry;
     
     printk( "myfs: file_operations.readdir called\n" );
 
@@ -59,7 +59,6 @@ struct inode *my_get_inode(struct super_block *sb,
 {
     struct inode * inode = new_inode(sb);
     init_special_inode(inode, mode, dev);
-    inode->i_op = &my_dir_operations;
     return inode;
 }
 
@@ -68,7 +67,6 @@ int my_fill_super(struct super_block *sb, void *data, int silent)
     struct inode *inode = NULL;
     struct dentry *root;
     int err;
-    
     
     sb->s_maxbytes		= MAX_LFS_FILESIZE;
     sb->s_blocksize		= PAGE_CACHE_SIZE;
@@ -83,7 +81,7 @@ int my_fill_super(struct super_block *sb, void *data, int silent)
         goto fail;
     }
     
-    inode->i_fop = &simple_dir_operations;
+    inode->i_fop = &my_dir_operations;
     
     root = d_alloc_root(inode);
     sb->s_root = root;
