@@ -21,6 +21,7 @@
 static struct file_system_type my_fs_type;
 static const struct super_operations my_ops;
 static const struct file_operations my_dir_operations;
+static const struct inode_operations my_dir_inode_operations;
 
 
 static struct dentry *
@@ -59,6 +60,7 @@ struct inode *my_get_inode(struct super_block *sb,
 {
     struct inode * inode = new_inode(sb);
     init_special_inode(inode, mode, dev);
+    inode->i_op = &my_dir_inode_operations;
     return inode;
 }
 
@@ -71,8 +73,8 @@ int my_fill_super(struct super_block *sb, void *data, int silent)
     sb->s_maxbytes		= MAX_LFS_FILESIZE;
     sb->s_blocksize		= PAGE_CACHE_SIZE;
     sb->s_blocksize_bits	= PAGE_CACHE_SHIFT;
-    sb->s_magic		= MYFS_MAGIC;
-    sb->s_op		= &my_ops;
+    sb->s_magic		        = MYFS_MAGIC;
+    sb->s_op		        = &my_ops;
     sb->s_time_gran		= 1;
     
     inode = my_get_inode(sb, NULL, S_IFDIR, 0);
