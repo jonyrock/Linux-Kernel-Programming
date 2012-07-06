@@ -25,6 +25,17 @@ struct ramfs_fs_info { struct ramfs_mount_opts mount_opts; };
 enum { Opt_mode, Opt_err };
 static const struct inode_operations ramfs_dir_inode_operations;
 
+static struct dentry *
+my_inode_lookup(struct inode *parent_inode, struct dentry *dentry, 
+                  struct nameidata *nameidata) {
+
+    struct inode *file_inode;
+
+    printk("my_inode_lookup%s\n", dentry->d_name.name);
+
+    return NULL;
+}
+
 struct inode *ramfs_get_inode(struct super_block *sb,
 				const struct inode *dir, umode_t mode, dev_t dev)
 {
@@ -101,7 +112,7 @@ static struct file_system_type ramfs_fs_type = {
 
 static const struct inode_operations ramfs_dir_inode_operations = {
 	.create		= NULL,
-	.lookup		= simple_lookup,
+	.lookup		= my_inode_lookup,
 	.link		= simple_link,
 	.unlink		= simple_unlink,
 	.symlink	= NULL,
