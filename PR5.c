@@ -65,72 +65,73 @@ struct inode *my_get_inode(struct super_block *sb,
 
 int my_fill_super(struct super_block *sb, void *data, int silent) 
 {
-        struct inode *inode = NULL;
-        struct dentry *root;
-        int err;
-        
+    struct inode *inode = NULL;
+    struct dentry *root;
+    int err;
     
-	sb->s_maxbytes		= MAX_LFS_FILESIZE;
-	sb->s_blocksize		= PAGE_CACHE_SIZE;
-	sb->s_blocksize_bits	= PAGE_CACHE_SHIFT;
-	sb->s_magic		= MYFS_MAGIC;
-	sb->s_op		= &my_ops;
-	sb->s_time_gran		= 1;
-        
-        inode = my_get_inode(sb, NULL, S_IFDIR, 0);
-	if (!inode) {
-            err = -ENOMEM;
-            goto fail;
-	}
-
-        inode->i_fop = &simple_dir_operations;
-
-        root = d_alloc_root(inode);
-	sb->s_root = root;
-
-	return 0;
+    
+    sb->s_maxbytes		= MAX_LFS_FILESIZE;
+    sb->s_blocksize		= PAGE_CACHE_SIZE;
+    sb->s_blocksize_bits	= PAGE_CACHE_SHIFT;
+    sb->s_magic		= MYFS_MAGIC;
+    sb->s_op		= &my_ops;
+    sb->s_time_gran		= 1;
+    
+    inode = my_get_inode(sb, NULL, S_IFDIR, 0);
+    if (!inode) {
+        err = -ENOMEM;
+        goto fail;
+    }
+    
+    inode->i_fop = &simple_dir_operations;
+    
+    root = d_alloc_root(inode);
+    sb->s_root = root;
+    
+    return 0;
 
 fail:
-	sb->s_fs_info = NULL;
-	iput(inode);
-	return err;
+    sb->s_fs_info = NULL;
+    iput(inode);
+    return err;
 
 }
 
 struct dentry *my_mount(struct file_system_type *fs_type,
 	int flags, const char *dev_name, void *data)
 {
-	return mount_nodev(fs_type, flags, data, my_fill_super);
+    return mount_nodev(fs_type, flags, data, my_fill_super);
 }
 
 static void my_kill_sb(struct super_block *sb)
 {
-	kfree(sb->s_fs_info);
-	kill_litter_super(sb);
+    kfree(sb->s_fs_info);
+    kill_litter_super(sb);
 }
 
 static const struct super_operations my_ops = {
-	.statfs		= simple_statfs,
-	.drop_inode	= generic_delete_inode,
-	.show_options	= generic_show_options,
+    .statfs		= simple_statfs,
+    .drop_inode	= generic_delete_inode,
+    .show_options	= generic_show_options,
 };
 
 static struct file_system_type my_fs_type = {
-	.name		= "myfs",
-	.mount		= my_mount,
-	.kill_sb	= my_kill_sb,
+    .name	= "myfs",
+    .mount	= my_mount,
+    .kill_sb    = my_kill_sb,
+    .owner      = THIS_MODULE
 };
 
 static const struct inode_operations my_dir_inode_operations = {
-	.create		= NULL,
-	.lookup		= my_inode_lookup,
-	.link		= simple_link,
-	.unlink		= simple_unlink,
-	.symlink	= NULL,
-	.mkdir		= NULL,
-	.rmdir		= simple_rmdir,
-	.mknod		= NULL,
-	.rename		= simple_rename,
+    .create	= NULL,
+    .lookup	= my_inode_lookup,
+    .link	= simple_link,
+    .unlink	= simple_unlink,
+    .symlink	= NULL,
+    .mkdir	= NULL,
+    .rmdir	= simple_rmdir,
+    .mknod	= NULL,
+    .rename	= simple_rename,
 };
 
 
