@@ -30,7 +30,7 @@ int ramfs_fill_super(struct super_block *sb, void *data, int silent)
 	sb->s_blocksize		= PAGE_CACHE_SIZE;
 	sb->s_blocksize_bits	= PAGE_CACHE_SHIFT;
 	sb->s_magic		= MYFS_MAGIC;
-	sb->s_op		= NULL;
+	sb->s_op		= &ramfs_ops;
 	sb->s_time_gran		= 1;
 
 	return 0;
