@@ -24,16 +24,51 @@ struct ramfs_mount_opts { umode_t mode; };
 struct ramfs_fs_info { struct ramfs_mount_opts mount_opts; };
 enum { Opt_mode, Opt_err };
 
+struct inode *ramfs_get_inode(struct super_block *sb,
+				const struct inode *dir, umode_t mode, dev_t dev)
+{
+    struct inode * inode = new_inode(sb);
+    return inode;
+}
+
 int ramfs_fill_super(struct super_block *sb, void *data, int silent) 
 {
+        struct inode *inode = NULL;
+        struct dentry *root;
+        int err;
+        struct ramfs_fs_info *fsi;
+        
+        fsi = kzalloc(sizeof(struct ramfs_fs_info), GFP_KERNEL);
+	sb->s_fs_info = fsi;
+	if (!fsi) {
+            err = -ENOMEM;
+            goto fail;
+	}
+
 	sb->s_maxbytes		= MAX_LFS_FILESIZE;
 	sb->s_blocksize		= PAGE_CACHE_SIZE;
 	sb->s_blocksize_bits	= PAGE_CACHE_SHIFT;
 	sb->s_magic		= MYFS_MAGIC;
 	sb->s_op		= &ramfs_ops;
 	sb->s_time_gran		= 1;
+        
+        inode = ramfs_get_inode(sb, NULL, S_IFDIR | fsi->mount_opts.mode, 0);
+	if (!inode) {
+            err = -ENOMEM;
+            goto fail;
+	}
+
+        root = d_alloc_root(inode);
+	sb->s_root = root;
 
 	return 0;
+
+fail:
+	kfree(fsi);
+	sb->s_fs_info = NULL;
+	iput(inode);
+	return err;
+
 }
 
 struct dentry *ramfs_mount(struct file_system_type *fs_type,
