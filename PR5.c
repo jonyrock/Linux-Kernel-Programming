@@ -116,9 +116,14 @@ static int __init start(void)
     return register_filesystem(&ramfs_fs_type);
 }
 
+static void __exit stop(void)
+{
+    unregister_filesystem(&ramfs_fs_type);
+}
 
 
 module_init(start);
+module_exit(stop);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alexey Velikiy <gmpota@gmail.com>");
