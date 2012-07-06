@@ -23,12 +23,14 @@ static const struct super_operations ramfs_ops;
 struct ramfs_mount_opts { umode_t mode; };
 struct ramfs_fs_info { struct ramfs_mount_opts mount_opts; };
 enum { Opt_mode, Opt_err };
+static const struct inode_operations ramfs_dir_inode_operations
 
 struct inode *ramfs_get_inode(struct super_block *sb,
 				const struct inode *dir, umode_t mode, dev_t dev)
 {
     struct inode * inode = new_inode(sb);
     init_special_inode(inode, mode, dev);
+    inode->i_op = ramfs_dir_inode_operations;
     return inode;
 }
 
@@ -95,6 +97,18 @@ static struct file_system_type ramfs_fs_type = {
 	.name		= "myfs",
 	.mount		= ramfs_mount,
 	.kill_sb	= ramfs_kill_sb,
+};
+
+static const struct inode_operations ramfs_dir_inode_operations = {
+	.create		= NULL,
+	.lookup		= simple_lookup,
+	.link		= simple_link,
+	.unlink		= simple_unlink,
+	.symlink	= NULL,
+	.mkdir		= NULL,
+	.rmdir		= simple_rmdir,
+	.mknod		= NULL,
+	.rename		= simple_rename,
 };
 
 static int __init start(void)
