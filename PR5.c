@@ -20,10 +20,8 @@
 /** Declarations */
 static struct file_system_type ramfs_fs_type;
 static const struct super_operations ramfs_ops;
-struct ramfs_mount_opts { umode_t mode; };
-struct ramfs_fs_info { struct ramfs_mount_opts mount_opts; };
-enum { Opt_mode, Opt_err };
-static const struct inode_operations ramfs_dir_inode_operations;
+static const struct file_operations my_dir_operations;
+
 
 static struct dentry *
 my_inode_lookup(struct inode *parent_inode, struct dentry *dentry, 
@@ -34,6 +32,22 @@ my_inode_lookup(struct inode *parent_inode, struct dentry *dentry,
     printk("my_inode_lookup%s\n", dentry->d_name.name);
 
     return NULL;
+}
+
+
+int my_f_readdir( struct file *file, void *dirent, filldir_t filldir ) {
+    int err;
+    struct dentry *de = file->f_dentry;
+
+    printk( "rkfs: file_operations.readdir called\n" );
+    if(file->f_pos > 0 )
+        return 1;
+    if(filldir(dirent, ".", 1, file->f_pos++, de->d_inode->i_ino, DT_DIR)||
+       (filldir(dirent, "..", 2, file->f_pos++, de->d_parent->d_inode->i_ino, DT_DIR)))
+        return 0;
+    if(filldir(dirent, "hello.txt", 9, file->f_pos++, FILE_INODE_NUMBER, DT_REG ))
+        return 0;
+    return 1;
 }
 
 struct inode *ramfs_get_inode(struct super_block *sb,
@@ -72,6 +86,7 @@ int ramfs_fill_super(struct super_block *sb, void *data, int silent)
             goto fail;
 	}
 
+        inode->i_fop = &simple_dir_operations;
 
         root = d_alloc_root(inode);
 	sb->s_root = root;
@@ -121,6 +136,11 @@ static const struct inode_operations ramfs_dir_inode_operations = {
 	.mknod		= NULL,
 	.rename		= simple_rename,
 };
+
+
+static const struct file_operations my_dir_operations = {
+    .readdir = 
+}
 
 static int __init start(void)
 {
