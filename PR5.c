@@ -27,7 +27,7 @@ static struct dentry *
 my_inode_lookup(struct inode *parent_inode, struct dentry *dentry, 
                   struct nameidata *nameidata) {
 
-    struct inode *file_inode;
+//    struct inode *file_inode;
 
     printk("my_inode_lookup%s\n", dentry->d_name.name);
 
@@ -39,17 +39,19 @@ int my_f_readdir( struct file *file, void *dirent, filldir_t filldir ) {
     int err;
     struct dentry *de = file->f_dentry;
     
+    printk( "myfs: file_operations.readdir called\n" );
+
     return 0;
 
-    printk( "rkfs: file_operations.readdir called\n" );
-    if(file->f_pos > 0)
-        return 1;
-    if(filldir(dirent, ".", 1, file->f_pos++, de->d_inode->i_ino, DT_DIR)||
-       (filldir(dirent, "..", 2, file->f_pos++, de->d_parent->d_inode->i_ino, DT_DIR)))
-        return 0;
-    if(filldir(dirent, "hello.txt", 9, file->f_pos++, FILE_INODE_NUMBER, DT_REG ))
-        return 0;
-    return 1;
+//    printk( "rkfs: file_operations.readdir called\n" );
+//    if(file->f_pos > 0)
+//        return 1;
+//    if(filldir(dirent, ".", 1, file->f_pos++, de->d_inode->i_ino, DT_DIR)||
+//       (filldir(dirent, "..", 2, file->f_pos++, de->d_parent->d_inode->i_ino, DT_DIR)))
+//        return 0;
+//    if(filldir(dirent, "hello.txt", 9, file->f_pos++, FILE_INODE_NUMBER, DT_REG ))
+//        return 0;
+//    return 1;
 }
 
 struct inode *my_get_inode(struct super_block *sb,
@@ -57,7 +59,7 @@ struct inode *my_get_inode(struct super_block *sb,
 {
     struct inode * inode = new_inode(sb);
     init_special_inode(inode, mode, dev);
-    inode->i_op = &my_dir_inode_operations;
+    inode->i_op = &my_dir_operations;
     return inode;
 }
 
@@ -66,15 +68,8 @@ int my_fill_super(struct super_block *sb, void *data, int silent)
         struct inode *inode = NULL;
         struct dentry *root;
         int err;
-        struct my_fs_info *fsi;
         
-        fsi = kzalloc(sizeof(struct my_fs_info), GFP_KERNEL);
-	sb->s_fs_info = fsi;
-	if (!fsi) {
-            err = -ENOMEM;
-            goto fail;
-	}
-
+    
 	sb->s_maxbytes		= MAX_LFS_FILESIZE;
 	sb->s_blocksize		= PAGE_CACHE_SIZE;
 	sb->s_blocksize_bits	= PAGE_CACHE_SHIFT;
@@ -82,7 +77,7 @@ int my_fill_super(struct super_block *sb, void *data, int silent)
 	sb->s_op		= &my_ops;
 	sb->s_time_gran		= 1;
         
-        inode = my_get_inode(sb, NULL, S_IFDIR | fsi->mount_opts.mode, 0);
+        inode = my_get_inode(sb, NULL, S_IFDIR, 0);
 	if (!inode) {
             err = -ENOMEM;
             goto fail;
@@ -96,7 +91,6 @@ int my_fill_super(struct super_block *sb, void *data, int silent)
 	return 0;
 
 fail:
-	kfree(fsi);
 	sb->s_fs_info = NULL;
 	iput(inode);
 	return err;
@@ -141,8 +135,8 @@ static const struct inode_operations my_dir_inode_operations = {
 
 
 static const struct file_operations my_dir_operations = {
-    .readdir = my_f_readdir;
-}
+    .readdir = my_f_readdir,
+};
 
 static int __init start(void)
 {
