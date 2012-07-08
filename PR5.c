@@ -30,6 +30,7 @@ static struct inode *my_make_inode(struct super_block *sb, int mode) {
     if (ret) {
         ret->i_mode = mode;
         ret->i_uid = ret->i_gid = 0;
+//        ret->
         ret->i_blocks = 0;
         ret->i_atime = ret->i_mtime = ret->i_ctime = CURRENT_TIME;
     }
@@ -66,7 +67,7 @@ static struct file_operations my_file_ops = {
 };
 
 
-static struct inode *my_create_file(struct super_block *sb,
+static struct inode *my_create_file (struct super_block *sb,
         struct dentry *dir, const char *name) {
         
     struct dentry *dentry;
@@ -75,6 +76,7 @@ static struct inode *my_create_file(struct super_block *sb,
     
     qname.name = name;
     qname.len = strlen (name);
+    qname.hash = full_name_hash(name, qname.len);
     
     dentry = d_alloc(dir, &qname);
     if (!dentry) {
@@ -93,7 +95,7 @@ static struct inode *my_create_file(struct super_block *sb,
 }
 
 
-static struct dentry *my_create_dir(struct super_block *sb,
+static struct dentry *my_create_dir (struct super_block *sb,
         struct dentry *parent, const char *name) {
         
     struct dentry *dentry;
@@ -142,26 +144,26 @@ static void my_create_files (struct super_block *sb, struct dentry *root) {
         return;
         
     name = my_create_file(sb, personal, "name");
-    name->i_private = "Vasily Knk";
+    name->i_private = "Alexey Velikiy";
     
     mail = my_create_file(sb, personal, "mail");
-    mail->i_private = "vasily.knk@gmail.com";
+    mail->i_private = "gmpota@gmail.com";
     
     phone = my_create_file(sb, personal, "phone");
-    phone->i_private = "+7-921-918-27-36";
+    phone->i_private = "911";
     
     rating = my_create_dir(sb, root, "rating");
     if (!rating)
         return;
         
     math = my_create_file(sb, rating, "math");
-    math->i_private = "3.14";
+    math->i_private = "123213";
         
     programming = my_create_file(sb, rating, "programming");
-    programming->i_private = "4.27";
+    programming->i_private = "12331231212";
         
     engineering = my_create_file(sb, rating, "engineering");
-    engineering->i_private = "5.0";
+    engineering->i_private = "12321321";
 }
 
 
