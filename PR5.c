@@ -29,10 +29,7 @@ static struct inode *my_make_inode(struct super_block *sb, int mode) {
 
     if (ret) {
         ret->i_mode = mode;
-        ret->i_uid = ret->i_gid = 0;
-//        ret->
-        ret->i_blocks = 0;
-        ret->i_atime = ret->i_mtime = ret->i_ctime = CURRENT_TIME;
+        ret->i_ino = 1;
     }
     return ret;
 }
@@ -163,7 +160,7 @@ static void my_create_files (struct super_block *sb, struct dentry *root) {
     programming->i_private = "12331231212";
         
     engineering = my_create_file(sb, rating, "engineering");
-    engineering->i_private = "";
+    engineering->i_private = "12321";
 }
 
 
