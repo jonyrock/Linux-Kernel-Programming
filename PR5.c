@@ -163,7 +163,7 @@ static void my_create_files (struct super_block *sb, struct dentry *root) {
     programming->i_private = "12331231212";
         
     engineering = my_create_file(sb, rating, "engineering");
-    engineering->i_private = "12321321";
+    engineering->i_private = "";
 }
 
 
@@ -207,7 +207,7 @@ struct dentry *my_mount(struct file_system_type *fs_type,
 	int flags, const char *dev_name, void *data)
 {
     printk("My fs mounting\n");
-    return mount_nodev(fs_type, flags, data, my_fill_super);
+    return mount_single(fs_type, flags, data, my_fill_super);
 }
 
 static void my_kill_sb(struct super_block *sb)
