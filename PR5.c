@@ -24,44 +24,146 @@ static const struct file_operations my_dir_operations;
 static const struct inode_operations my_dir_inode_operations;
 
 
-static struct dentry *
-my_inode_lookup(struct inode *parent_inode, struct dentry *dentry, 
-                  struct nameidata *nameidata) {
+static struct inode *my_make_inode(struct super_block *sb, int mode) {
+    struct inode *ret = new_inode(sb);
 
-//    struct inode *file_inode;
-
-    printk("my_inode_lookup%s\n", dentry->d_name.name);
-
-    return NULL;
+    if (ret) {
+        ret->i_mode = mode;
+        ret->i_uid = ret->i_gid = 0;
+        ret->i_blocks = 0;
+        ret->i_atime = ret->i_mtime = ret->i_ctime = CURRENT_TIME;
+    }
+    return ret;
 }
 
 
-int my_f_readdir( struct file *file, void *dirent, filldir_t filldir ) {
-    //int err;
-    struct dentry *de = file->f_dentry;
-    
-    printk( "myfs: file_operations.readdir called\n" );
-
-    
-    if(file->f_pos > 0)
-        return 1;
-    if(filldir(dirent, ".", 1, file->f_pos++, de->d_inode->i_ino, DT_DIR) ||
-       (filldir(dirent, "..", 2, file->f_pos++, de->d_parent->d_inode->i_ino, 
-            DT_DIR)))
-        return 0;
-    if(filldir(dirent, "hello.txt", 9, file->f_pos++, FILE_INODE_NUMBER, DT_REG ))
-        return 0;
-    return 1;
+static int my_open(struct inode *inode, struct file *filp) {
+    filp->private_data = inode->i_private;
+    return 0;
 }
 
-struct inode *my_get_inode(struct super_block *sb,
-				const struct inode *dir, umode_t mode, dev_t dev)
-{
-    struct inode * inode = new_inode(sb);
-    init_special_inode(inode, mode, dev);
-    inode->i_op = &my_dir_inode_operations;
+static ssize_t my_read_file(struct file *filp, char *buf,
+        size_t count, loff_t *offset) {
+        
+    char* data = (char*)filp->private_data;
+    int len;
+    
+    len = strlen(data);
+    if (count > len - *offset) {
+        count = len - *offset;
+    }
+
+    if (copy_to_user(buf, data + *offset, count)) {
+        return -EFAULT;
+    }
+    *offset += count;
+    return count;
+}
+
+static struct file_operations my_file_ops = {
+    .open = my_open,
+    .read = my_read_file,
+};
+
+
+static struct inode *my_create_file(struct super_block *sb,
+        struct dentry *dir, const char *name) {
+        
+    struct dentry *dentry;
+    struct inode *inode;
+    struct qstr qname;
+    
+    qname.name = name;
+    qname.len = strlen (name);
+    
+    dentry = d_alloc(dir, &qname);
+    if (!dentry) {
+        return 0;
+    }
+    
+    inode = my_make_inode(sb, S_IFREG | 0644);
+    if (!inode) {
+        dput(dentry);
+        return 0;
+    }
+    
+    inode->i_fop = &my_file_ops;
+    d_add(dentry, inode);
     return inode;
 }
+
+
+static struct dentry *my_create_dir(struct super_block *sb,
+        struct dentry *parent, const char *name) {
+        
+    struct dentry *dentry;
+    struct inode *inode;
+    struct qstr qname;
+
+    qname.name = name;
+    qname.len = strlen (name);
+    qname.hash = full_name_hash(name, qname.len);
+
+    dentry = d_alloc(parent, &qname);
+    if (!dentry) {
+        return 0;
+    }
+
+    inode = my_make_inode(sb, S_IFDIR | 0644);
+    if (!inode) {
+        dput(dentry);
+        return 0;
+    }
+    
+    inode->i_op = &simple_dir_inode_operations;
+    inode->i_fop = &simple_dir_operations;
+    d_add(dentry, inode);
+    return dentry;
+}
+
+static void my_create_files (struct super_block *sb, struct dentry *root) {
+    struct dentry *info;
+    struct dentry *personal;
+    struct dentry *rating;
+
+    struct inode *name;
+    struct inode *mail;
+    struct inode *phone;
+    struct inode *math;
+    struct inode *programming;
+    struct inode *engineering;
+
+    info = my_create_dir(sb, root, "info");
+    if (!info)
+        return;
+        
+    personal = my_create_dir(sb, info, "personal");
+    if (!personal)
+        return;
+        
+    name = my_create_file(sb, personal, "name");
+    name->i_private = "Vasily Knk";
+    
+    mail = my_create_file(sb, personal, "mail");
+    mail->i_private = "vasily.knk@gmail.com";
+    
+    phone = my_create_file(sb, personal, "phone");
+    phone->i_private = "+7-921-918-27-36";
+    
+    rating = my_create_dir(sb, root, "rating");
+    if (!rating)
+        return;
+        
+    math = my_create_file(sb, rating, "math");
+    math->i_private = "3.14";
+        
+    programming = my_create_file(sb, rating, "programming");
+    programming->i_private = "4.27";
+        
+    engineering = my_create_file(sb, rating, "engineering");
+    engineering->i_private = "5.0";
+}
+
 
 int my_fill_super(struct super_block *sb, void *data, int silent) 
 {
@@ -76,17 +178,20 @@ int my_fill_super(struct super_block *sb, void *data, int silent)
     sb->s_op		        = &my_ops;
     sb->s_time_gran		= 1;
     
-    inode = my_get_inode(sb, NULL, S_IFDIR, 0);
+    inode = my_make_inode(sb, S_IFDIR | 0755);
     if (!inode) {
         err = -ENOMEM;
         goto fail;
     }
-    
-    inode->i_fop = &my_dir_operations;
-    
+
+    inode->i_op = &simple_dir_inode_operations;
+    inode->i_fop = &simple_dir_operations;
+        
     root = d_alloc_root(inode);
     sb->s_root = root;
     
+    my_create_files(sb, root);
+
     return 0;
 
 fail:
@@ -99,6 +204,7 @@ fail:
 struct dentry *my_mount(struct file_system_type *fs_type,
 	int flags, const char *dev_name, void *data)
 {
+    printk("My fs mounting\n");
     return mount_nodev(fs_type, flags, data, my_fill_super);
 }
 
@@ -110,8 +216,7 @@ static void my_kill_sb(struct super_block *sb)
 
 static const struct super_operations my_ops = {
     .statfs		= simple_statfs,
-    .drop_inode	= generic_delete_inode,
-    .show_options	= generic_show_options,
+    .drop_inode	        = generic_delete_inode,
 };
 
 static struct file_system_type my_fs_type = {
@@ -121,22 +226,7 @@ static struct file_system_type my_fs_type = {
     .owner      = THIS_MODULE
 };
 
-static const struct inode_operations my_dir_inode_operations = {
-    .create	= NULL,
-    .lookup	= my_inode_lookup,
-    .link	= simple_link,
-    .unlink	= simple_unlink,
-    .symlink	= NULL,
-    .mkdir	= NULL,
-    .rmdir	= simple_rmdir,
-    .mknod	= NULL,
-    .rename	= simple_rename,
-};
 
-
-static const struct file_operations my_dir_operations = {
-    .readdir = my_f_readdir,
-};
 
 static int __init start(void)
 {
